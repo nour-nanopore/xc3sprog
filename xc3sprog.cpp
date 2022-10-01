@@ -78,6 +78,7 @@ void ctrl_c(int sig)
 
 int programXC3S(Jtag &g, int argc, char **args, bool verbose,
                 bool reconfig, int family);
+void getUsercode(Jtag &jtag, bool verbose, int family);
 int programXCF(Jtag &jtag, DeviceDB &db, int argc, char **args,
                bool verbose, bool erase, bool reconfigure,
                const char *device, int *chainpositions, int nchainpos,
@@ -382,6 +383,7 @@ void usage(bool all_options)
   OPT(""      , "In ISF Mode, test the SPI connection.");
   OPT("-X opts", "Set options for XCFxxP programming");
   OPT("-v", "Verbose output.");
+  OPT("-u", "Print usercode register.");
 
   fprintf(stderr, "\nProgrammer specific options:\n");
   /* Parallel cable */
@@ -641,6 +643,7 @@ int main(int argc, char **args)
   bool     reconfigure  = false;
   bool     erase        = false;
   bool     use_ftd2xx   = false;
+  bool	   get_usercode = false;
   unsigned int jtag_freq= 0;
   unsigned long id;
   struct cable_t cable;
@@ -676,7 +679,7 @@ int main(int argc, char **args)
 
   // Start from parsing command line arguments
   while(true) {
-      int c = getopt(argc, args, "?hCLc:d:DeE:F:i:I::jJ:Lm:o:p:Rs:S:T::vX:");
+      int c = getopt(argc, args, "?hCLc:d:DeE:F:i:I::jJ:Lm:o:p:Rs:S:T::uvX:");
     switch(c) 
     {
     case -1:
@@ -797,6 +800,10 @@ int main(int argc, char **args)
       serial = optarg;
       break;
 
+    case 'u':
+      get_usercode = true;
+      break;
+
     case 'X':
       {
         vector<string> new_opts = splitString(string(optarg), ',');
@@ -824,7 +831,7 @@ int main(int argc, char **args)
       dump_lists(&cabledb, &db);
 
   if((argc < 0) || (cablename == 0))  usage(true);
-  if(argc < 1 && !reconfigure && !erase) detectchain = true;
+  if(argc < 1 && !reconfigure && !erase && !get_usercode) detectchain = true;
   if (verbose)
   {
     fprintf(stderr, "Using %s\n", db.getFile().c_str());
@@ -876,6 +883,37 @@ int main(int argc, char **args)
       usage(false);
     }
 
+  if(get_usercode) {
+    // Only tested on the XC3 but the IR is the same for at least
+    // Virtex II to Spartan 6
+    if (manufacturer == MANUFACTURER_XILINX &&
+	((family == FAMILY_XC2S) ||
+	 (family == FAMILY_XC2SE) ||
+	 (family == FAMILY_XC4VLX) ||
+	 (family == FAMILY_XC4VFX) ||
+	 (family == FAMILY_XC4VSX) ||
+	 (family == FAMILY_XC3S) ||
+	 (family == FAMILY_XC3SE) ||
+	 (family == FAMILY_XC3SA) ||
+	 (family == FAMILY_XC3SAN) ||
+	 (family == FAMILY_XC3SD) ||
+	 (family == FAMILY_XC6S) ||
+	 (family == FAMILY_XC2V) ||
+	 (family == FAMILY_XC5VLX) ||
+	 (family == FAMILY_XC5VLXT) ||
+	 (family == FAMILY_XC5VSXT) ||
+	 (family == FAMILY_XC5VFXT) ||
+	 (family == FAMILY_XC5VTXT) ||
+	 (family == FAMILY_XC7))) {
+      getUsercode(jtag, verbose, family);
+      return 0;
+    } else {
+      fprintf(stderr,
+	      "Sorry, can't get usercode from device '%s' from family 0x%02x\n",
+	      db.idToDescription(id), family);
+      return 1;
+    }
+  }
   if(spiflash)
       return programSPI(jtag, argc, args, verbose, erase,
                         reconfigure, test_count, 
@@ -942,12 +980,13 @@ int main(int argc, char **args)
 	    return jAVR (jtag, id, args[0],verify, lock, eepromfile, fusefile);
 	}
     }
-  else
+  else {
     fprintf(stderr,
 	    "Sorry, can't program device '%s' from manufacturer 0x%02x "
 	    "A more recent release may be able to.\n", 
 	    db.idToDescription(id), manufacturer);
-  return 1;
+    return 1;
+  }
 }
 
 ProgAlg * makeProgAlg(Jtag &jtag, unsigned long id,
@@ -1069,6 +1108,13 @@ int programXC3S(Jtag &jtag, int argc, char** args,
       }
   }
   return 0;
+}
+void getUsercode(Jtag &jtag, bool verbose, int family)
+{
+
+  ProgAlgXC3S alg(jtag, family);
+
+  printf("Usercode 0x%08x\n", alg.getUsercode());
 }
 
 int programXCF(Jtag &jtag, DeviceDB &db, int argc, char **args,
