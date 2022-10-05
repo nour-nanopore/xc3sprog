@@ -10,7 +10,6 @@ class MapFile_XC2C
   char *mapfilename;
   int block_size;
   int block_num;
-  int post;
   int *map;
   int readmap(FILE *);
  public:

@@ -125,7 +125,6 @@ int ProgAlgXC95X::flow_array_program(JedecFile &file)
   int k, sec,l,m;
   unsigned char data;
   unsigned int idx=0;
-     
 
   gettimeofday(tv, NULL);
   for(sec=0;sec < MaxSector;sec++)
@@ -133,64 +132,64 @@ int ProgAlgXC95X::flow_array_program(JedecFile &file)
     if(jtag->getVerbose())
       fprintf(stderr, "                            \r"
 	      "Programming Sector %3d", sec);
-      preamble[0]= 0x01;
-      for(l=0;l<3;l++){
-	for(m=0;m<5;m++){
-	  Addr = sec*0x20 + l*0x08 + m;
-	  i_data[DRegLength] = (byte) (Addr &0xff);
-	  i_data[DRegLength+1] = (byte) ((Addr>>8) &0xff);
-	  if(l*5+m >= 9){
-	    bitlen=6;
-	  }
-	  else{
-	    bitlen=8;
-	  }
-	  for(int j=0;j<DRegLength;j++)
-	    {
-	      data = 0;
-	      for(int i=0;i<bitlen;i++)
-		{
-		  data |=(file.get_fuse(idx++)<<i);
-		}
-	      i_data[j] = data;
-	    }
-	  if ((l == 2) && (m == 4))
-	    preamble[0] = 0x03;
-	  jtag->Usleep(1000); /*FIXME: IOFTDI Buffer causes abort with high
-			        rate on some board otherwise*/
-	  jtag->shiftIR(&ISC_PROGRAM);
-	  jtag->shiftDR(preamble,0,2,0,false);
-	  jtag->shiftDR(i_data,0,(DRegLength+2)*8);
-	  if((l == 2) && (m == 4))
-	    jtag->Usleep(50000);
-	  else
-	    jtag->cycleTCK(1);
-	  if ((l == 2) && (m == 4))
-	    {
-	      preamble[0]= 0x00;
-	      for(k=0; k< 32; k++)
-		{
-		  jtag->shiftIR(&ISC_PROGRAM);
-		  jtag->shiftDR(preamble, 0,2,0,false);
-		  jtag->shiftDR(i_data, 0,(DRegLength+2)*8);
-		  jtag->Usleep(50000);
-		  jtag->shiftDR(0,o_data, ((DRegLength+2)*8)+2);
-		  if(jtag->getVerbose())
-		    {
-		      fprintf(stderr, ".");
-		      fflush(stderr);
-		    }
-		  if ((o_data[0] & 0x03) == 0x01)
-		    break;
-		}
-	      if (k == 32)
-		{
-		  fprintf(stderr, "failed\n");
-		  return 1;
-		}
-	    }
+    preamble[0]= 0x01;
+    for(l=0;l<3;l++){
+      for(m=0;m<5;m++){
+	Addr = sec*0x20 + l*0x08 + m;
+	i_data[DRegLength] = (byte) (Addr &0xff);
+	i_data[DRegLength+1] = (byte) ((Addr>>8) &0xff);
+	if(l*5+m >= 9){
+	  bitlen=6;
 	}
+	else{
+	  bitlen=8;
+	}
+	for(int j=0;j<DRegLength;j++)
+	  {
+	    data = 0;
+	    for(int i=0;i<bitlen;i++)
+	      {
+		data |=(file.get_fuse(idx++)<<i);
+	      }
+	    i_data[j] = data;
+	  }
+	if ((l == 2) && (m == 4))
+	  preamble[0] = 0x03;
+	jtag->Usleep(1000); /*FIXME: IOFTDI Buffer causes abort with high
+			      rate on some board otherwise*/
+	jtag->shiftIR(&ISC_PROGRAM);
+	jtag->shiftDR(preamble,0,2,0,false);
+	jtag->shiftDR(i_data,0,(DRegLength+2)*8);
+	if((l == 2) && (m == 4))
+	  jtag->Usleep(50000);
+	else
+	  jtag->cycleTCK(1);
+	if ((l == 2) && (m == 4))
+	  {
+	    preamble[0]= 0x00;
+	    for(k=0; k< 32; k++)
+	      {
+		jtag->shiftIR(&ISC_PROGRAM);
+		jtag->shiftDR(preamble, 0,2,0,false);
+		jtag->shiftDR(i_data, 0,(DRegLength+2)*8);
+		jtag->Usleep(50000);
+		jtag->shiftDR(0,o_data, ((DRegLength+2)*8)+2);
+		if(jtag->getVerbose())
+		  {
+		    fprintf(stderr, ".");
+		    fflush(stderr);
+		  }
+		if ((o_data[0] & 0x03) == 0x01)
+		  break;
+	      }
+	    if (k == 32)
+	      {
+		fprintf(stderr, "failed\n");
+		return 1;
+	      }
+	  }
       }
+    }
     }
   gettimeofday(tv+1, NULL);
   if(jtag->getVerbose())

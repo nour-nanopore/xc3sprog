@@ -359,7 +359,6 @@ static void m_skip(int ch, struct state_mach*m)
       }
 }
 JedecFile::JedecFile(void)
-  : Error(false), logfile(stderr) 
 {
   jed.checksum = 0;
   jed.fuse_count = 0;
