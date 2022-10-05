@@ -64,6 +64,7 @@ class ProgAlgXC3S
   ProgAlgXC3S(Jtag &j, int family);
   void array_program(BitFile &file);
   void reconfig();
+  uint32_t getUsercode();
 };
 
 

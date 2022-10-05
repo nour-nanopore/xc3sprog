@@ -39,6 +39,7 @@ static const byte JSTART[2]      = { 0xcc, 0xff };
 static const byte ISC_PROGRAM[2] = { 0xd1, 0xff };
 static const byte ISC_ENABLE[2]  = { 0xd0, 0xff };
 static const byte ISC_DISABLE[2] = { 0xd6, 0xff };
+static const byte USERCODE[2]    = { 0xc8, 0xff };
 static const byte BYPASS[2]      = { 0xff, 0xff };
 static const byte ISC_DNA[1]     = { 0x31 };
 
@@ -315,3 +316,12 @@ void ProgAlgXC3S::reconfig(void)
   jtag->setTapState(Jtag::TEST_LOGIC_RESET);
 }
 
+uint32_t ProgAlgXC3S::getUsercode(void) {
+  byte data[4];
+
+  jtag->shiftIR(USERCODE);
+  jtag->shiftDR(0, data, 32);
+  jtag->cycleTCK(1);
+
+  return data[3] << 24 | data[2] << 16 | data[1] << 8 | data[0];
+}
