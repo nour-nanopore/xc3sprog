@@ -337,6 +337,17 @@ unsigned long get_id(Jtag &jtag, DeviceDB &db, int chainpos)
   
 void usage(bool all_options)
 {
+  char osname[OSNAME_LEN];
+  get_os_name(osname, sizeof(osname));
+  // Produce release info from SVN tags
+  fprintf(stderr, "XC3SPROG (c) 2004-2011 xc3sprog project $Rev: 774 $ OS: %s\n"
+	  "Free software: If you contribute nothing, expect nothing!\n"
+	  "Feedback on success/failure/enhancement requests:\n"
+          "\thttp://sourceforge.net/mail/?group_id=170565 \n"
+	  "Check Sourceforge for updates:\n"
+          "\thttp://sourceforge.net/projects/xc3sprog/develop\n\n",
+	  osname);
+
   fprintf(stderr, "usage:\txc3sprog -c cable [options] <file0spec> <file1spec> ...\n");
   fprintf(stderr, "\tList of known cables is given with -c follow by no or invalid cablename\n");
   fprintf(stderr, "\tfilespec is filename:action:offset:style:length\n");
@@ -661,21 +672,10 @@ int main(int argc, char **args)
   char const *serial  = 0;
   char *bscanfile = 0;
   char *cablename = 0;
-  char osname[OSNAME_LEN];
   DeviceDB db(NULL);
   CableDB cabledb(NULL);
   std::auto_ptr<IOBase>  io;
   int res;
-
-  get_os_name(osname, sizeof(osname));
-  // Produce release info from SVN tags
-  fprintf(stderr, "XC3SPROG (c) 2004-2011 xc3sprog project $Rev: 774 $ OS: %s\n"
-	  "Free software: If you contribute nothing, expect nothing!\n"
-	  "Feedback on success/failure/enhancement requests:\n"
-          "\thttp://sourceforge.net/mail/?group_id=170565 \n"
-	  "Check Sourceforge for updates:\n"
-          "\thttp://sourceforge.net/projects/xc3sprog/develop\n\n",
-	  osname);
 
   // Start from parsing command line arguments
   while(true) {
@@ -820,7 +820,6 @@ int main(int argc, char **args)
             cabledb.dumpCables(stderr);
             exit(1);
         }
-        fprintf(stderr, "Unknown option -%c\n", c);
         usage(true);
     }
   }
