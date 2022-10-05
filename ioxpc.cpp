@@ -576,9 +576,9 @@ void IOXPC::txrx_block(const unsigned char *in, unsigned char *out, int len,
       xts.out_bits = 0;
       xts.out_done = 0;
       
+      int tdi = 0;
       for(i=0,j=0; i<len && j>=0; i++)
 	{
-	  int tdi;
 	  if (in)
 	    {
 	      if ((i & 0x7 ) == 0)

@@ -68,28 +68,28 @@ ProgAlgNVM::~ProgAlgNVM(void)
 enum PDI_STATUS_CODE ProgAlgNVM::xnvm_init(void)
 {
     PDI_STATUS_CODE retval;
-    if(initialized == 0){
+    if(initialized)
+      return STATUS_OK;
 
-	/* Put the device in reset mode */
-	xnvm_put_dev_in_reset();
+    /* Put the device in reset mode */
+    xnvm_put_dev_in_reset();
 
-	/* Create the key command */
-	cmd_buffer[0] = XNVM_PDI_KEY_INSTR;
-	cmd_buffer[1] = NVM_KEY_BYTE0;
-	cmd_buffer[2] = NVM_KEY_BYTE1;
-	cmd_buffer[3] = NVM_KEY_BYTE2;
-	cmd_buffer[4] = NVM_KEY_BYTE3;
-	cmd_buffer[5] = NVM_KEY_BYTE4;
-	cmd_buffer[6] = NVM_KEY_BYTE5;
-	cmd_buffer[7] = NVM_KEY_BYTE6;
-	cmd_buffer[8] = NVM_KEY_BYTE7;
+    /* Create the key command */
+    cmd_buffer[0] = XNVM_PDI_KEY_INSTR;
+    cmd_buffer[1] = NVM_KEY_BYTE0;
+    cmd_buffer[2] = NVM_KEY_BYTE1;
+    cmd_buffer[3] = NVM_KEY_BYTE2;
+    cmd_buffer[4] = NVM_KEY_BYTE3;
+    cmd_buffer[5] = NVM_KEY_BYTE4;
+    cmd_buffer[6] = NVM_KEY_BYTE5;
+    cmd_buffer[7] = NVM_KEY_BYTE6;
+    cmd_buffer[8] = NVM_KEY_BYTE7;
 
-	prot->pdi_write(cmd_buffer, 9);
+    prot->pdi_write(cmd_buffer, 9);
 
-	retval = xnvm_ctrl_wait_nvmbusy(WAIT_RETRIES_NUM);
+    retval = xnvm_ctrl_wait_nvmbusy(WAIT_RETRIES_NUM);
 
-	initialized = 1;
-    }
+    initialized = 1;
 
     return retval;
 }
